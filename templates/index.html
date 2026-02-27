@@ -1,0 +1,541 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Text Summarizer</title>
+
+<style>
+:root {
+    --bg: linear-gradient(135deg, #667eea, #764ba2);
+    --card-bg: rgba(255,255,255,0.15);
+    --text-color: #ffffff;
+    --textarea-bg: #ffffff;
+    --textarea-text: #000000;
+}
+
+body.light {
+    --bg: #f4f4f4;
+    --card-bg: #ffffff;
+    --text-color: #333333;
+    --textarea-bg: #ffffff;
+    --textarea-text: #000000;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    background: var(--bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    transition: 0.3s;
+}
+
+.container {
+    width: 100%;
+    max-width: 900px;
+    background: var(--card-bg);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 35px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    color: var(--text-color);
+    transition: 0.3s;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 24px;
+}
+
+.toggle-btn {
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    background: #ff758c;
+    color: white;
+}
+
+textarea {
+    width: 100%;
+    min-height: 200px;
+    border-radius: 12px;
+    border: none;
+    padding: 15px;
+    font-size: 16px;
+    resize: vertical;
+    outline: none;
+    margin-top: 10px;
+    background: var(--textarea-bg);
+    color: var(--textarea-text);
+}
+
+.counter {
+    margin-top: 8px;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+button.generate-btn {
+    width: 100%;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 12px;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ff7eb3, #ff758c);
+    color: white;
+    transition: 0.3s;
+}
+
+button.generate-btn:hover {
+    transform: translateY(-2px);
+}
+
+.output {
+    margin-top: 25px;
+    padding: 20px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.2);
+    min-height: 80px;
+    line-height: 1.6;
+}
+
+.copy-btn {
+    margin-top: 10px;
+    padding: 8px 15px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: #28a745;
+    color: white;
+    display: none;
+}
+
+.loading {
+    display: none;
+    text-align: center;
+    margin-top: 15px;
+}
+
+.spinner {
+    border: 4px solid rgba(255,255,255,0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    animation: spin 1s linear infinite;
+    margin: auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="top-bar">
+        <h2>📝 AI Text Summarizer</h2>
+        <button class="toggle-btn" onclick="toggleMode()">🌙 Toggle Mode</button>
+    </div>
+
+    <textarea id="inputText" placeholder="Paste your long text here..."></textarea>
+    <div class="counter" id="counter">Words: 0 | Characters: 0</div>
+
+    <button class="generate-btn" onclick="generateSummary()">✨ Generate Summary</button>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Generating summary...</p>
+    </div>
+
+    <div class="output" id="result"></div>
+    <button class="copy-btn" id="copyBtn" onclick="copySummary()">📋 Copy Summary</button>
+
+</div>
+
+<script>
+
+const textarea = document.getElementById("inputText");
+const counter = document.getElementById("counter");
+const copyBtn = document.getElementById("copyBtn");
+
+textarea.addEventListener("input", () => {
+    const text = textarea.value.trim();
+    const words = text ? text.split(/\s+/).length : 0;
+    const characters = text.length;
+    counter.innerText = `Words: ${words} | Characters: ${characters}`;
+});
+
+function toggleMode() {
+    document.body.classList.toggle("light");
+}
+
+async function generateSummary() {
+    const text = textarea.value;
+    const resultDiv = document.getElementById("result");
+    const loading = document.getElementById("loading");
+
+    if (!text.trim()) {
+        resultDiv.innerHTML = "⚠ Please enter some text.";
+        return;
+    }
+
+    resultDiv.innerHTML = "";
+    copyBtn.style.display = "none";
+    loading.style.display = "block";
+
+    try {
+        const response = await fetch("/summarize", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: text })
+        });
+
+        const data = await response.json();
+        loading.style.display = "none";
+
+        resultDiv.innerHTML = "<strong>Summary:</strong><br><br>" + data.summary;
+        copyBtn.style.display = "inline-block";
+
+    } catch (error) {
+        loading.style.display = "none";
+        resultDiv.innerHTML = "❌ Error generating summary.";
+    }
+}
+
+function copySummary() {
+    const summaryText = document.getElementById("result").innerText.replace("Summary:", "").trim();
+    navigator.clipboard.writeText(summaryText);
+    copyBtn.innerText = "✅ Copied!";
+    setTimeout(() => copyBtn.innerText = "📋 Copy Summary", 2000);
+}
+
+</script>
+
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Text Summarizer</title>
+
+<style>
+:root {
+    --bg: linear-gradient(135deg, #667eea, #764ba2);
+    --card-bg: rgba(255,255,255,0.15);
+    --text-color: #ffffff;
+    --textarea-bg: #ffffff;
+    --textarea-text: #000000;
+}
+
+body.light {
+    --bg: #f4f4f4;
+    --card-bg: #ffffff;
+    --text-color: #333333;
+    --textarea-bg: #ffffff;
+    --textarea-text: #000000;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    background: var(--bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    transition: 0.3s;
+}
+
+.container {
+    width: 100%;
+    max-width: 900px;
+    background: var(--card-bg);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 35px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    color: var(--text-color);
+    transition: 0.3s;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 24px;
+}
+
+.toggle-btn {
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    background: #ff758c;
+    color: white;
+}
+
+textarea {
+    width: 100%;
+    min-height: 200px;
+    border-radius: 12px;
+    border: none;
+    padding: 15px;
+    font-size: 16px;
+    resize: vertical;
+    outline: none;
+    margin-top: 10px;
+    background: var(--textarea-bg);
+    color: var(--textarea-text);
+}
+
+.counter {
+    margin-top: 8px;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+button.generate-btn {
+    width: 100%;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 12px;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ff7eb3, #ff758c);
+    color: white;
+    transition: 0.3s;
+}
+
+button.generate-btn:hover {
+    transform: translateY(-2px);
+}
+
+.output {
+    margin-top: 25px;
+    padding: 20px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.2);
+    min-height: 80px;
+    line-height: 1.6;
+}
+
+.copy-btn {
+    margin-top: 10px;
+    padding: 8px 15px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: #28a745;
+    color: white;
+    display: none;
+}
+
+.loading {
+    display: none;
+    text-align: center;
+    margin-top: 15px;
+}
+
+.spinner {
+    border: 4px solid rgba(255,255,255,0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    animation: spin 1s linear infinite;
+    margin: auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="top-bar">
+        <h2>📝 AI Text Summarizer</h2>
+        <button class="toggle-btn" onclick="toggleMode()">🌙 Toggle Mode</button>
+    </div>
+
+    <!-- Input -->
+    <textarea id="inputText" placeholder="Paste your long text here..." ></textarea>
+    <div class="counter" id="inputCounter">
+        Words: 0 | Characters: 0
+    </div>
+
+    <button class="generate-btn" onclick="generateSummary()">✨ Generate Summary</button>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Generating summary...</p>
+    </div>
+
+    <!-- Output -->
+    <div class="output" id="result"></div>
+    <div class="counter" id="summaryCounter">
+        Words: 0 | Characters: 0
+    </div>
+
+    <button class="copy-btn" id="copyBtn" onclick="copySummary()">📋 Copy Summary</button>
+
+</div>
+
+<script>
+
+const textarea = document.getElementById("inputText");
+const inputCounter = document.getElementById("inputCounter");
+const summaryCounter = document.getElementById("summaryCounter");
+const copyBtn = document.getElementById("copyBtn");
+const resultDiv = document.getElementById("result");
+const loading = document.getElementById("loading");
+
+const MAX_WORDS = 150;
+
+// ===== Input Counter + Word Limit =====
+textarea.addEventListener("input", () => {
+
+    let wordsArray = textarea.value.trim().split(/\s+/).filter(word => word.length > 0);
+
+    // If over limit, trim it
+    if (wordsArray.length > MAX_WORDS) {
+        wordsArray = wordsArray.slice(0, MAX_WORDS);
+        textarea.value = wordsArray.join(" ");
+    }
+
+    const words = wordsArray.length;
+    const characters = textarea.value.length;
+    const remaining = MAX_WORDS - words;
+
+    inputCounter.innerText =
+        `Words: ${words} / ${MAX_WORDS} | Characters: ${characters} | Remaining: ${remaining}`;
+});
+
+
+// ===== Dark/Light Mode =====
+function toggleMode() {
+    document.body.classList.toggle("light");
+}
+
+
+// ===== Update Summary Counter =====
+function updateSummaryCounter(text) {
+    const cleanText = text.trim();
+    const words = cleanText ? cleanText.split(/\s+/).length : 0;
+    const characters = cleanText.length;
+
+    summaryCounter.innerText =
+        `Words: ${words} | Characters: ${characters}`;
+}
+
+
+// ===== Generate Summary =====
+async function generateSummary() {
+
+    const text = textarea.value;
+    const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+
+    if (!text.trim()) {
+        resultDiv.innerHTML = "⚠ Please enter some text.";
+        return;
+    }
+
+    if (words.length > MAX_WORDS) {
+        resultDiv.innerHTML = `⚠ Maximum ${MAX_WORDS} words allowed.`;
+        return;
+    }
+
+    resultDiv.innerHTML = "";
+    summaryCounter.innerText = "Words: 0 | Characters: 0";
+    copyBtn.style.display = "none";
+    loading.style.display = "block";
+
+    try {
+        const response = await fetch("/summarize", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: text })
+        });
+
+        const data = await response.json();
+        loading.style.display = "none";
+
+        resultDiv.innerHTML = "<strong>Summary:</strong><br><br>" + data.summary;
+        updateSummaryCounter(data.summary);
+        copyBtn.style.display = "inline-block";
+
+    } catch (error) {
+        loading.style.display = "none";
+        resultDiv.innerHTML = "❌ Error generating summary.";
+    }
+}
+
+
+// ===== Copy Summary =====
+function copySummary() {
+    const summaryText = resultDiv.innerText.replace("Summary:", "").trim();
+    navigator.clipboard.writeText(summaryText);
+    copyBtn.innerText = "✅ Copied!";
+    setTimeout(() => copyBtn.innerText = "📋 Copy Summary", 2000);
+}
+
+</script>
+
+</body>
+</html>
