@@ -9,21 +9,18 @@ from transformers import T5Tokenizer, T5ForConditionalGeneration
 app = Flask(__name__)
 
 # =========================
-# Load Model
+# Load Model from Hugging Face
 # =========================
-MODEL = "text_summarizer_model"
+MODEL = "Ankurcr7/Text_summarizer_model"
 
-model = T5ForConditionalGeneration.from_pretrained(MODEL)
 tokenizer = T5Tokenizer.from_pretrained(MODEL)
+model = T5ForConditionalGeneration.from_pretrained(MODEL)
 
 device = torch.device("cpu")
 model.to(device)
 model.eval()
 
 
-# =========================
-# Text Cleaning
-# =========================
 def clean_text(text):
     text = text.lower()
     text = re.sub(r"http\S+", "", text)
@@ -32,16 +29,15 @@ def clean_text(text):
     return text.strip()
 
 
-# =========================
-# Summary Generation
-# =========================
 def generate_summary(text):
+    text = text[:1500]  # prevent memory issues
+
     input_text = "summarize: " + clean_text(text)
 
     inputs = tokenizer(
         input_text,
         return_tensors="pt",
-        max_length=512,
+        max_length=256,
         truncation=True
     )
 
@@ -50,19 +46,13 @@ def generate_summary(text):
     with torch.no_grad():
         output = model.generate(
             **inputs,
-            max_length=250,
-            num_beams=6,
-            length_penalty=1.0,
-            no_repeat_ngram_size=3,
-            early_stopping=True
+            max_length=120,
+            num_beams=1  # reduce memory
         )
 
     return tokenizer.decode(output[0], skip_special_tokens=True)
 
 
-# =========================
-# Routes
-# =========================
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -79,9 +69,6 @@ def summarize():
     return jsonify({"summary": summary})
 
 
-# =========================
-# Run App (Render Compatible)
-# =========================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))  # Render assigns PORT
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
