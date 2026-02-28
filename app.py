@@ -8,7 +8,10 @@ from transformers import T5Tokenizer, T5ForConditionalGeneration
 
 app = Flask(__name__)
 
-MODEL= "text_summarizer_model_2/text_summarizer_model"
+# =========================
+# Load Model
+# =========================
+MODEL = "text_summarizer_model_2/text_summarizer_model"
 
 model = T5ForConditionalGeneration.from_pretrained(MODEL)
 tokenizer = T5Tokenizer.from_pretrained(MODEL)
@@ -18,6 +21,9 @@ model.to(device)
 model.eval()
 
 
+# =========================
+# Text Cleaning
+# =========================
 def clean_text(text):
     text = text.lower()
     text = re.sub(r"http\S+", "", text)
@@ -26,6 +32,9 @@ def clean_text(text):
     return text.strip()
 
 
+# =========================
+# Summary Generation
+# =========================
 def generate_summary(text):
     input_text = "summarize: " + clean_text(text)
 
@@ -51,6 +60,9 @@ def generate_summary(text):
     return tokenizer.decode(output[0], skip_special_tokens=True)
 
 
+# =========================
+# Routes
+# =========================
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -64,9 +76,12 @@ def summarize():
         return jsonify({"error": "No text provided"}), 400
 
     summary = generate_summary(data["text"])
-
     return jsonify({"summary": summary})
 
 
+# =========================
+# Run App (Render Compatible)
+# =========================
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 10000))  # Render assigns PORT
+    app.run(host="0.0.0.0", port=port)
