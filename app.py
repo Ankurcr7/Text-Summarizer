@@ -6,6 +6,11 @@ import torch
 import re
 from transformers import T5Tokenizer, T5ForConditionalGeneration
 
+import os
+from huggingface_hub import login
+
+login(os.environ["HF_TOKEN"])
+
 app = Flask(__name__)
 
 # =========================
