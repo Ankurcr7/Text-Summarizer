@@ -11,7 +11,7 @@ app = Flask(__name__)
 # =========================
 # Load Model
 # =========================
-MODEL = "text_summarizer_model_2/text_summarizer_model"
+MODEL = "text_summarizer_model"
 
 model = T5ForConditionalGeneration.from_pretrained(MODEL)
 tokenizer = T5Tokenizer.from_pretrained(MODEL)
