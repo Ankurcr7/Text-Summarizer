@@ -1,4 +1,4 @@
-# AI Text Summarizer
+# Text Summarizer
 
 A Transformer-based Text Summarization Web Application built using Flask and PyTorch.
 The model is fine-tuned using the T5 Transformer architecture from the Hugging Face Transformers library and deployed with a simple and interactive web interface.
@@ -140,5 +140,7 @@ The ipynb folder contains notebooks used for:
 
 - Better model fine-tuning 
 
+
+---
 
 # Thank you 
