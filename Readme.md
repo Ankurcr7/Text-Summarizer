@@ -23,6 +23,7 @@ Users can input long text and generate a concise summary instantly.
 
 # Project Structure
 
+```
 text-summarizer/
 │
 ├── app.py                # Main Flask application
@@ -40,7 +41,7 @@ text-summarizer/
 ├── README.md             # Project documentation
 │
 └── images/               # Saved screenshots
-
+```
 
 # Requirements
 
@@ -56,7 +57,9 @@ sentencepiece
 
 ### Install dependencies using:
 
-```pip install -r requirements.txt```
+```
+pip install -r requirements.txt
+```
 
 
 # Model Details
@@ -65,13 +68,14 @@ The summarization model is based on the T5 (Text-to-Text Transfer Transformer) a
 
 The model was fine-tuned on a dataset where:
 
-Input: Long document/article
+- Input: Long document/article
 
-Output: Short summary
+- Output: Short summary
 
 
 # Application Workflow
 
+```
 User Input Text
       │
       ▼
@@ -88,7 +92,7 @@ Generated Summary
       │
       ▼
 Displayed on Web UI
-
+```
 
 # Example Results
 
@@ -101,26 +105,30 @@ Displayed on Web UI
 
 Run the Flask app locally:
 
-```python app.py```
+```
+python app.py
+```
 
 Open in browser:
 
-```http://127.0.0.1:5000```
+```
+http://127.0.0.1:5000
+```
 
 
 # Training Notebook
 
 The ipynb folder contains notebooks used for:
 
-#### Data preprocessing
+#### 1. Data preprocessing
 
-#### Tokenization
+#### 2. Tokenization
 
-#### Model training
+#### 3. Model training
 
-#### Model evaluation
+#### 4. Model evaluation
 
-#### Saving the fine-tuned model
+#### 5. Saving the fine-tuned model
 
 
 
